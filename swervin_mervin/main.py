@@ -1,53 +1,70 @@
 # Swervin' Mervin'
-# v0.1 -> step #10
+# v0.1
 # (c) Andrew Buntine
 # https://github.com/buntine/swervin_mervin
 
-import pygame, sys
+import pygame, sys, math
 from pygame.locals import *
+from projection import *
+from rendering import *
 
 pygame.init()
 
 # Game variables.
 fps            = 50
+position       = 0
 dimensions     = (640, 480)
-road_width     = 2000
-speed          = 3 # TODO: Change to 0 once accel/decel implemented.
-acceleration   = 3
-white          = pygame.Color(255, 255, 255)
-light_grey     = pygame.Color(193, 193, 193)
-dark_grey      = pygame.Color(123, 123, 123)
+segment_height = 200
+rumble_length  = 3
+speed          = 1
+draw_distance  = 100
+road_width     = 1500
+top_speed      = (segment_height / (1.0/fps))
+acceleration   = top_speed / 5.0
+field_of_view  = 100 # Degrees
+camera_height  = 1000
+camera_depth   = 1 / math.tan((field_of_view / 2) * math.pi / 180);
+player_x       = 0
+player_z       = camera_height * camera_depth
+colours        = {"white": pygame.Color(255, 255, 255),
+                  "light_grey": pygame.Color(193, 193, 193),
+                  "dark_grey": pygame.Color(123, 123, 123)}
+
+segments       = build_segments(segment_height, rumble_length, colours["dark_grey"], colours["light_grey"])
+track_length   = len(segments) * segment_height
 
 fps_clock = pygame.time.Clock()
 window    = pygame.display.set_mode(dimensions)
 
-t = 0
-
 while True:
-    window.fill(white)
+    window.fill(colours["white"])
 
-    z = t
-    dz = 0
-    ddz = 3
+    position += (0.02 * speed)
+    speed += (acceleration * 0.02)
 
-    for n in range(240):
-        dz += ddz
-        z += dz
+    if position > track_length:
+        position = 0
 
-        if z < 4000:
-            color = dark_grey
-        elif z > 8000:
-            z = 0
-            color = dark_grey
-        elif z > 4000:
-            color = light_grey
+    if speed > top_speed:
+        speed = top_speed
 
-        pygame.draw.line(window, color, (0, 480 - n), (640, 480 - n), 1)
+    base_segment = find_segment(position, segments, segment_height)
 
-    if t > 8000:
-        t = 0
-    else:
-        t += 800
+    for s in range(draw_distance):
+        index             = (base_segment["index"] + s) % len(segments)
+        segment           = segments[index]
+
+        segment["bottom"] = project_line(segment, "bottom", (player_x * road_width), camera_height, position, camera_depth, dimensions, road_width)
+        segment["top"]    = project_line(segment, "top", (player_x * road_width), camera_height, position, camera_depth, dimensions, road_width)
+        segments[index]   = segment
+
+        # Segment is behind us.
+        if segment["bottom"]["camera"]["z"] <= camera_depth:
+            continue
+
+        pointlist = segment_pointlist(segment)
+
+        pygame.draw.polygon(window, segment["colour"], pointlist)
 
     for event in pygame.event.get():
         if event.type == QUIT:
