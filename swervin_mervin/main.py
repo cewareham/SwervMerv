@@ -14,21 +14,26 @@ pygame.init()
 fps            = 50
 position       = 0
 dimensions     = (640, 480)
-segment_height = 200
+segment_height = 150
 rumble_length  = 3
 speed          = 1
 draw_distance  = 100
 road_width     = 1500
 top_speed      = (segment_height / (1.0/fps))
-acceleration   = top_speed / 5.0
+acceleration   = top_speed / 9.0
 field_of_view  = 100 # Degrees
 camera_height  = 1000
 camera_depth   = 1 / math.tan((field_of_view / 2) * math.pi / 180);
 player_x       = 0
+direction_x    = 0
 player_z       = camera_height * camera_depth
 colours        = {"white": pygame.Color(255, 255, 255),
-                  "light": pygame.Color(193, 193, 193),
-                  "dark": pygame.Color(123, 123, 123)}
+                  "light": {"road": pygame.Color(193, 193, 193),
+                            "grass": pygame.Color(61, 212, 76),
+                            "lane": pygame.Color(255, 255, 255)},
+                  "dark": {"road": pygame.Color(173, 173, 173),
+                           "grass": pygame.Color(50, 186, 62),
+                           "lane": pygame.Color(255, 255, 255)}}
 
 segments       = build_segments(segment_height, rumble_length, colours)
 track_length   = len(segments) * segment_height
@@ -41,6 +46,7 @@ while True:
 
     position += (0.02 * speed)
     speed += (acceleration * 0.02) # TODO: Might need actually time diff instead of 0.02 guess.
+    player_x += direction_x
 
     while position >= track_length:
         position -= track_length
@@ -57,20 +63,35 @@ while True:
         index             = (base_segment["index"] + s) % len(segments)
         segment           = segments[index]
 
-        segment["top"]    = project_line(segment, "top", (player_x * road_width), camera_height, position, camera_depth, dimensions, road_width)
-        segment["bottom"] = project_line(segment, "bottom", (player_x * road_width), camera_height, position, camera_depth, dimensions, road_width)
+        project_line(segment, "top", (player_x * road_width), camera_height, position, camera_depth, dimensions, road_width)
+        project_line(segment, "bottom", (player_x * road_width), camera_height, position, camera_depth, dimensions, road_width)
 
-        # Segment is behind us. TODO: Check for clipping.
+        # Segment is behind us.
         if segment["bottom"]["camera"]["z"] <= camera_depth:
             continue
 
-        pointlist = segment_pointlist(segment)
-        pygame.draw.polygon(window, segment["colour"], pointlist)
+        render_grass(window, segment, dimensions)
+        render_road(window, segment, dimensions)
 
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
+        elif event.type == KEYDOWN:
+            if event.key == K_LEFT:
+                direction_x = -(0.02 * 2 * (speed / top_speed))
+            elif event.key == K_RIGHT:
+                direction_x = (0.02 * 2 * (speed / top_speed))
+        else:
+            direction_x = 0
+
+    # Prevent player from going too far off track.
+    if player_x < -1.8:
+        player_x = -1.8
+
+    if player_x > 1.8:
+        player_x = 1.8
+
 
     pygame.display.update()
     fps_clock.tick(fps)
