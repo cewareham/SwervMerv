@@ -22,27 +22,27 @@ def render_road(window, segment):
     bottom_rumble_width = bottom["w"] / (s.LANES * 2)
 
     # Left rumble strip.
-    points = [((bottom["x"] - bottom["w"] - top_rumble_width), y_bottom),
-              ((bottom["x"] - bottom["w"]),                    y_bottom),
-              ((top["x"] - top["w"]),                          y_top),
-              ((top["x"] - top["w"] - top_rumble_width),       y_top)]
+    points = [((bottom["x"] - bottom["w"] - bottom_rumble_width), y_bottom),
+              ((bottom["x"] - bottom["w"]),                       y_bottom),
+              ((top["x"] - top["w"]),                             y_top),
+              ((top["x"] - top["w"] - top_rumble_width),          y_top)]
     pygame.draw.polygon(window, colour["rumble"], points)
 
     # Right rumble strip.
     points = [((bottom["x"] + bottom["w"] + bottom_rumble_width), y_bottom),
               ((bottom["x"] + bottom["w"]),                       y_bottom),
               ((top["x"] + top["w"]),                             y_top),
-              ((top["x"] + top["w"] + bottom_rumble_width),       y_top)]
+              ((top["x"] + top["w"] + top_rumble_width),          y_top)]
     pygame.draw.polygon(window, colour["rumble"], points)
 
     if (segment["index"] / s.RUMBLE_LENGTH) % 2 == 0:
-       
-        # Road lane marker(s).
+        # Road lanes.
         top_line_width    = (top["w"] / (s.LANES * 8))
         bottom_line_width = (bottom["w"] / (s.LANES * 8))
         lane_top_w        = top["w"] / s.LANES
         lane_bottom_w     = bottom["w"] / s.LANES
 
+        # Render each lane separator.
         for lane in range(s.LANES - 1):
             lane_bottom_w *= 2
             lane_top_w    *= 2
