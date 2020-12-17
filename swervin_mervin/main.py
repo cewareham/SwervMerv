@@ -28,23 +28,36 @@ window    = pygame.display.set_mode(s.DIMENSIONS)
 while True:
     window.fill(s.COLOURS["sky"])
 
-    position     = p.position(position, speed, track_length)
-    speed        = p.accelerate(speed, acceleration)
-    player_x     = p.steer(player_x, direction_x)
-    base_segment = se.find_segment(position, segments)
+    position        = p.position(position, speed, track_length)
+    speed           = p.accelerate(speed, acceleration)
+    speed_percent   = speed / s.TOP_SPEED
+    direction_speed = (s.FRAME_RATE * 2 * speed_percent)
+    player_x        = p.steer(player_x, direction_x)
+    base_segment    = se.find_segment(position, segments)
+    base_percent    = (position % s.SEGMENT_HEIGHT) / s.SEGMENT_HEIGHT
+
+    player_x    -= (direction_speed * speed_percent * base_segment["curve"] * s.CENTRIFUGAL_FORCE)
+    curve_delta  = -(base_segment["curve"] * base_percent)
+    curve        = 0
+
+    r.render_background(window, curve_delta)
 
     # Loop through segments we should draw for this frame.
     for i in range(s.DRAW_DISTANCE):
         index              = (base_segment["index"] + i) % len(segments)
         segment            = segments[index]
         projected_position = position
+        camera_x           = player_x * s.ROAD_WIDTH
 
         # Past end of track and looped back.
         if segment["index"] < base_segment["index"]:
             projected_position -= track_length
 
-        p.project_line(segment, "top", (player_x * s.ROAD_WIDTH), projected_position)
-        p.project_line(segment, "bottom", (player_x * s.ROAD_WIDTH), projected_position)
+        p.project_line(segment, "top", camera_x - curve - curve_delta, projected_position)
+        p.project_line(segment, "bottom", camera_x - curve, projected_position)
+
+        curve       += curve_delta
+        curve_delta += segment["curve"]
 
         # Segment is behind us, so ignore it.
         if segment["bottom"]["camera"]["z"] <= s.CAMERA_DEPTH:
@@ -58,25 +71,11 @@ while True:
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
-        elif event.type == KEYDOWN:
-            # Go left.
-            if event.key == K_LEFT:
-                direction_x = -(s.FRAME_RATE * 2 * (speed / s.TOP_SPEED))
 
-            # Go right.
-            elif event.key == K_RIGHT:
-                direction_x = (s.FRAME_RATE * 2 * (speed / s.TOP_SPEED))
-
-            # Accelerate!
-            elif event.key == K_UP:
-                acceleration = s.FRAME_RATE
-
-            # Decelerate.
-            elif event.key == K_DOWN:
-                acceleration = -s.FRAME_RATE
-        else:
-            direction_x  = 0
-            acceleration = 0
+    # Steering, acceleration.
+    keys         = pygame.key.get_pressed()
+    acceleration = p.acceleration(keys)
+    direction_x  = p.direction(keys, direction_speed)
 
     pygame.display.update()
     fps_clock.tick(s.FPS)

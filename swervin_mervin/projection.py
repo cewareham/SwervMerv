@@ -1,5 +1,6 @@
 # Helper functions for projection.
 
+from pygame.locals import *
 import settings as s
 import math
 
@@ -42,6 +43,28 @@ def accelerate(speed, acceleration):
 
     return new_speed
 
+def acceleration(keys):
+    """Accepts key-polling array and returns appropriate acceleration factor"""
+    a = -s.FRAME_RATE
+
+    if keys[K_UP]:
+        a = s.FRAME_RATE
+    elif keys[K_DOWN]:
+        a = -(s.FRAME_RATE * s.DECELERATION)
+
+    return a
+
+def direction(keys, dir_speed):
+    """Accepts key-polling array and returns appropriate direction factor"""
+    d = 0
+
+    if keys[K_LEFT]:
+        d = -dir_speed
+    elif keys[K_RIGHT]:
+        d = dir_speed
+
+    return d
+
 def position(position, speed, track_length):
     """Returns a new Z position for the camera, looping the track if we reach the end"""
     new_pos = position + (s.FRAME_RATE * speed)
@@ -58,6 +81,6 @@ def ease_in(a, b, p):
     """Traditional ease-in from a to b motion function"""
     return a + (b - a) * (p ** 2)
 
-def ease_in_out(a, b, p):
+def ease_out(a, b, p):
     """Traditional ease-in-and-then-out from a to b motion function"""
     return a + (b - a) * (-math.cos(p * math.pi) / 2) + 0.5
