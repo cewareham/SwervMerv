@@ -1,5 +1,5 @@
 # Swervin' Mervin'
-# v0.1
+# v0.3
 # (c) Andrew Buntine
 # https://github.com/buntine/swervin_mervin
 
@@ -16,6 +16,7 @@ pygame.init()
 position     = 0
 speed        = 1
 player_x     = 0
+player_y     = 0
 direction_x  = 0
 acceleration = 0
 segments     = se.build_level()
@@ -31,13 +32,16 @@ while True:
     speed           = p.accelerate(speed, acceleration)
     speed_percent   = speed / s.TOP_SPEED
     direction_speed = (s.FRAME_RATE * 2 * speed_percent)
-    player_x        = p.steer(player_x, direction_x)
     base_segment    = se.find_segment(position, segments)
     base_percent    = (position % s.SEGMENT_HEIGHT) / s.SEGMENT_HEIGHT
+    player_percent  = (position % track_length) / track_length
+    player_x        = p.steer(player_x, direction_x)
+    player_y        = (base_segment["bottom"]["world"]["y"] + (base_segment["top"]["world"]["y"] - base_segment["bottom"]["world"]["y"]) * player_percent)
 
     player_x    -= (direction_speed * speed_percent * base_segment["curve"] * s.CENTRIFUGAL_FORCE)
     curve_delta  = -(base_segment["curve"] * base_percent)
     curve        = 0
+    y_cov        = 0
 
     r.render_background(window, curve_delta)
 
@@ -52,15 +56,20 @@ while True:
         if segment["index"] < base_segment["index"]:
             projected_position -= track_length
 
-        p.project_line(segment, "top", camera_x - curve - curve_delta, projected_position)
-        p.project_line(segment, "bottom", camera_x - curve, projected_position)
+        p.project_line(segment, "top", camera_x - curve - curve_delta, projected_position, player_y)
+        p.project_line(segment, "bottom", camera_x - curve, projected_position, player_y)
 
         curve       += curve_delta
         curve_delta += segment["curve"]
 
-        # Segment is behind us, so ignore it.
-        if segment["bottom"]["camera"]["z"] <= s.CAMERA_DEPTH:
+        # Segment is behind us or over a hill, so ignore it.
+        if segment["top"]["camera"]["z"] <= s.CAMERA_DEPTH or\
+           segment["bottom"]["screen"]["y"] >= segment["top"]["screen"]["y"] or\
+           segment["top"]["screen"]["y"] < y_cov:
             continue
+
+        if (segment["top"]["screen"]["y"] > y_cov):
+            y_cov = segment["top"]["screen"]["y"]
 
         r.render_grass(window, segment)
         r.render_road(window, segment)
