@@ -9,17 +9,18 @@ DIMENSIONS        = (640, 480)
 SEGMENT_HEIGHT    = 260
 RUMBLE_LENGTH     = 3
 DRAW_DISTANCE     = 200
-ROAD_WIDTH        = 1900
-LANES             = 3
+ROAD_WIDTH        = 2100
+LANES             = 4
 BOUNDS            = 1.8
 CENTRIFUGAL_FORCE = 0.266
-TOP_SPEED         = (SEGMENT_HEIGHT / (1.0/FPS))
+TOP_SPEED         = (SEGMENT_HEIGHT / (1.0/FPS)) * 1.6
 OFFROAD_TOP_SPEED = TOP_SPEED / 2.0
 ACCELERATION      = TOP_SPEED / 5.0
 DECELERATION      = 2.3
 FIELD_OF_VIEW     = 100 # Degrees
 CAMERA_HEIGHT     = 1400
 CAMERA_DEPTH      = 1 / math.tan((FIELD_OF_VIEW / 2) * math.pi / 180);
+PLAYER_Z          = (CAMERA_HEIGHT * CAMERA_DEPTH)
 COLOURS           = {"white": Color(255, 255, 255),
                      "sky":   Color(142, 169, 232),
                      "light": {"road":   Color(193, 193, 193),
