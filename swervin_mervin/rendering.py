@@ -37,9 +37,9 @@ def render_road(window, segment):
 
     if (segment["index"] / s.RUMBLE_LENGTH) % 2 == 0:
         # Road lanes.
-        top_line_width    = (top["w"] / (s.LANES * 8))
-        bottom_line_width = (bottom["w"] / (s.LANES * 8))
-        step              = (1 / float(s.LANES))
+        top_line_width    = top["w"] / (s.LANES * 8)
+        bottom_line_width = bottom["w"] / (s.LANES * 8)
+        step              = 1 / float(s.LANES)
 
         # Render each lane separator.
         for lane in range(s.LANES - 1):
@@ -95,6 +95,20 @@ def render_player(window, segment, direction_x, player_percent):
     player = pygame.image.load("lib/" + sprite["path"])
     player = pygame.transform.scale(player, (s_width, s_height))
     window.blit(player, (width - (s_width / 2), s.DIMENSIONS[1] - s_height - s.BOTTOM_OFFSET))
+
+def render_sprites(window, segment):
+    """Renders the sprites with the appropriate scaling for the given segment"""
+    bottom = segment["bottom"]["screen"]
+
+    for sp in segment["sprites"]:
+        s_width  = int(sp["sprite"]["width"] * bottom["s"] * s.ROAD_WIDTH * 1.2)
+        s_height = int(sp["sprite"]["height"] * bottom["s"] * s.ROAD_WIDTH * 1.2)
+        x        = (bottom["x"] - s_width) + (bottom["w"] * sp["offset"])
+        y        = s.DIMENSIONS[1] - bottom["y"] - s_height
+        sprite   = pygame.image.load("lib/" + sp["sprite"]["path"])
+        sprite   = pygame.transform.scale(sprite, (s_width, s_height))
+
+        window.blit(sprite, (x, y))
 
 def render_background(window, curve):
     pass
