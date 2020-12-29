@@ -1,5 +1,5 @@
 # Swervin' Mervin'
-# v0.3
+# v0.5
 # (c) Andrew Buntine
 # https://github.com/buntine/swervin_mervin
 
@@ -13,7 +13,7 @@ import settings as s
 pygame.init()
 
 player    = p.Player()
-level     = l.Level("levels/city.lvl")
+level     = l.Level("test")
 fps_clock = pygame.time.Clock()
 window    = pygame.display.set_mode(s.DIMENSIONS)
 
@@ -56,14 +56,16 @@ while True:
         curve       += curve_delta
         curve_delta += segment.curve
 
+        segment.clip = y_coverage
+
         if segment.should_ignore(y_coverage):
             continue
 
-        if (segment.top["screen"]["y"] > y_coverage):
-            y_coverage = segment.top["screen"]["y"]
-
         segment.render_grass(window)
         segment.render_road(window)
+
+        if (segment.top["screen"]["y"] > y_coverage):
+            y_coverage = segment.top["screen"]["y"]
 
     # Draw sprites in from back to front (painters algorithm).
     for i in reversed(range(1, s.DRAW_DISTANCE)):
