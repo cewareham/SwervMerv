@@ -3,19 +3,22 @@
 # (c) Andrew Buntine
 # https://github.com/buntine/swervin_mervin
 
-import pygame, sys
+import pygame, sys#, numpy
 from pygame.locals import *
 import player as p
+import background as b
 import level as l
 import rendering as r
 import settings as s
 
 pygame.init()
 
-player    = p.Player()
-level     = l.Level("test")
-fps_clock = pygame.time.Clock()
-window    = pygame.display.set_mode(s.DIMENSIONS)
+player      = p.Player()
+level       = l.Level("test")
+fps_clock   = pygame.time.Clock()
+window      = pygame.display.set_mode(s.DIMENSIONS)
+backgrounds = [b.Background("city", 80, 5),
+               b.Background("clouds", 0, 16)]
 
 level.build()
 
@@ -35,7 +38,11 @@ while True:
     curve       = 0
     curve_delta = -(base_segment.curve * player.segment_percent())
 
-    r.render_background(window, curve_delta)
+    # Position backgrounds according to current curve.
+    for bg in backgrounds:
+        if base_segment.curve != 0:
+            bg.step(base_segment.curve, player.speed_percent())
+        bg.render(window)
 
     # Loop through segments we should draw for this frame.
     for i in range(s.DRAW_DISTANCE):

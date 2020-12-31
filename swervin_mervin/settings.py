@@ -14,7 +14,7 @@ LANES             = 4
 BOUNDS            = 1.8
 CENTRIFUGAL_FORCE = 0.266
 PLAYER_ANIM_HOLD  = 8
-TOP_SPEED         = (SEGMENT_HEIGHT / (1.0/FPS)) * 1.6
+TOP_SPEED         = (SEGMENT_HEIGHT / (1.0/FPS)) * 1.8
 OFFROAD_TOP_SPEED = TOP_SPEED / 2.0
 ACCELERATION      = TOP_SPEED / 5.0
 DECELERATION      = 2.3
@@ -44,11 +44,11 @@ SPRITES           = {"straight1": {
                      "left1": {
                        "path": "left1.png",
                        "width": 80,
-                       "height": 45},
+                       "height": 50},
                      "left2": {
                        "path": "left2.png",
                        "width": 80,
-                       "height": 45},
+                       "height": 50},
                      "right1": {
                        "path": "right1.png",
                        "width": 80,
@@ -116,4 +116,8 @@ SPRITES           = {"straight1": {
                      "bush1": {
                        "path": "bush1.png",
                        "width": 96,
-                       "height": 62}}
+                       "height": 62},
+                     "boulder1": {
+                       "path": "boulder1.png",
+                       "width": 67,
+                       "height": 99}}
